@@ -1,0 +1,17 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+import.apiKey	src/firebaseConfig.js	/^  apiKey: "AIzaSyApqR39Ep9VN7jTbsR-iOt8rK358vf5sEc",$/;"	p
+import.appId	src/firebaseConfig.js	/^  appId: "1:338652020413:web:a94bb63878ceaf8749c1d4",$/;"	p
+import.authDomain	src/firebaseConfig.js	/^  authDomain: "yourglasnotes.firebaseapp.com",$/;"	p
+import.databaseURL	src/firebaseConfig.js	/^  databaseURL: "https:\/\/yourglasnotes.firebaseio.com",$/;"	p
+import.measurementId	src/firebaseConfig.js	/^  measurementId: "G-RCF319DB0Z"$/;"	p
+import.messagingSenderId	src/firebaseConfig.js	/^  messagingSenderId: "338652020413",$/;"	p
+import.projectId	src/firebaseConfig.js	/^  projectId: "yourglasnotes",$/;"	p
+import.storageBucket	src/firebaseConfig.js	/^  storageBucket: "yourglasnotes.appspot.com",$/;"	p
+module.exports.env	.eslintrc.js	/^  env: {$/;"	p
+module.exports.presets	babel.config.js	/^  presets: [$/;"	p
+module.exports.root	.eslintrc.js	/^  root: true,$/;"	p
