@@ -7,18 +7,18 @@
       </div>
     </transition>
     <!-- <section> -->
-      <div class="col-4" id="side-image-login" style="background: url(https://transferwise.com/assets/login/roof.jpg) center right / cover no-repeat;">
+      <div class="col-4" id="side-image-login" :style="backgroundGlasgow">
         <!-- <h1>YourGlasNotes</h1>
         <p>Welcome to the place to share and study collaboratively, for the University of Glasgow students.</p>-->
       </div>
-      <div class="col-8 col-lg-push-5 col-lg-7 d-flex justify-content-center mt-5 pt-5">
-        <div class="col-md-push-2 col-md-8 col-md-pull-2 justify-content-center">
+      <div class="col-lg-push-5 col-lg-7 d-flex justify-content-center mt-5 pt-5">
+        <div class="col-md-push-2 col-md-8 col-md-pull-2 col-xl-push-3 col-xl-6 col-xl-pull-3">
           <div class="text-center">
             <div class="row mb-5 pb-5 justify-content-center">
               <div class="logo logo-auth-page col-centered hidden-xs hidden-sm hidden-md m-b-2"></div>
             </div>
           </div>
-          <div class="mt-5" :class="{ 'signup-form': !showLoginForm }">
+          <div class="mt-5" :class="{ 'signup-form': !showLoginForm && !showForgotPassword }">
             <form v-if="showLoginForm" class="form" @submit.prevent>
               <div class="text-xs-center justify-content-between mb-5">
                 <h2>Welcome Back</h2>
@@ -37,11 +37,11 @@
               <button @click="login" class="button btn-lg btn-block" type="button">Log In</button>
               <div class="row my-3">
                 <div class="text-right col-12 ">
-                  <a class="ml-auto" href="">Forgot Password?</a>
+                  <a class="ml-auto" @click.self.prevent="togglePasswordReset" href="">Forgot Password?</a>
                 </div>
               </div>
             </form>
-            <form v-else @submit.prevent>
+            <form v-if="!showLoginForm && !showForgotPassword" @submit.prevent>
               <div class="text-xs-center justify-content-between mb-5">
                 <h2>Get Started</h2>
               </div>
@@ -50,7 +50,7 @@
               <input v-model.trim="signupForm.name" type="text" class="form-control" placeholder="Your name" id="name" />
 
               <!-- <label for="email2">Email</label> -->
-              <input v-model.trim="signupForm.email" type="text" class="form-control" placeholder="Your email address" id="email2" />
+              <input v-model.trim="signupForm.email" type="email" class="form-control" placeholder="Your email address" id="email2" />
 
               <!-- <label for="password2">Password</label> -->
               <input v-model.trim="signupForm.password" type="password" class="form-control" placeholder="Create a password" id="password2" />
@@ -61,6 +61,31 @@
                 <div class="text-right col-12 ">
                   <a class="ml-auto" href="" @click.self.prevent="toggleForm">Back to Log in?</a>
                 </div>
+              </div>
+            </form>
+            <form v-if="showForgotPassword" @submit.prevent class="password-reset form">
+              <div v-if="!passwordResetSuccess">
+                <div class="text-xs-center justify-content-between mb-5">
+                  <h2>Reset Password</h2>
+                  <p>We will send you an email to reset your password.</p>
+                </div>
+                <input v-model.trim="passwordForm.email" type="email" placeholder="Your email"/>
+                <button @click="resetPassword" class="button btn-lg btn-block">Send password reset link</button>
+                <div class="row my-3">
+                  <div class="text-right col-12 ">
+                    <a class="ml-auto" href="" @click.self.prevent="togglePasswordReset">Back to Log in?</a>
+                  </div>
+                </div>
+              </div>
+              <div v-else>
+                <h3>Email Sent</h3>
+                <p>Check your email. We've sent you a link to reset your password.</p>
+                <button @click.self.prevent="togglePasswordReset" class="button btn-lg btn-block" type="button">Back to login?</button>
+              <div class="row my-3">
+                <div class="text-right col-12 ">
+                  <a class="ml-auto" href="" @click.self.prevent="toggleForm">Back to Log in?</a>
+                </div>
+              </div>
               </div>
             </form>
             <transition name="fade">
@@ -77,9 +102,6 @@
 </template>
 
 <style scoped>
-#side-image-login{
-  height: 100%;
-}
 .container-fluid-glas{
   height: 100vh!important;
 }
@@ -120,6 +142,19 @@
 .new-member-register{
   color: #5d7079;
 }
+#side-image-login{
+  height: 100%;
+  display:none;
+  visibility: none;
+  opacity: 0;
+}
+@media only screen and (min-width: 992px){
+  #side-image-login{
+    display:block;
+    visibility: visible;
+    opacity: 1;
+  }
+}
 </style>
 
 <script>
@@ -133,19 +168,49 @@
         },
         signupForm: {
           name: '',
-          title: '',
+          //title: '',
           email: '',
           password: ''
         },
+        passwordForm: {
+          email: ''
+        },
         showLoginForm: true,
+        showForgotPassword: false,
+        passwordResetSuccess: false,
         performingRequest: false,
-        errorMsg: ''
+        errorMsg: '',
+        bgImage: require("@/assets/glasgowuni.jpg")
+      }
+    },
+    computed:{
+      backgroundGlasgow(){
+        return {
+          "background": `url(${this.bgImage}) right center / cover no-repeat`
+        };
       }
     },
     methods:{
       toggleForm(){
         this.errorMsg = ''
         this.showLoginForm = !this.showLoginForm
+        if (this.showForgotPassword){
+          this.showForgotPassword = false
+          this.passwordResetSuccess = false
+          this.errorMsg = ''
+        }
+      },
+      togglePasswordReset(){
+        if (this.showForgotPassword){
+          this.showLoginForm = true
+          this.showForgotPassword = false
+          this.passwordResetSuccess = false
+          this.errorMsg = ''
+        } else{
+          this.showLoginForm = false
+          this.showForgotPassword = true
+          this.errorMsg = ''
+        }
       },
       login() {
         this.performingRequest = true
@@ -164,10 +229,10 @@
       signup() {
         this.performingRequest=true
         firebase.auth.createUserWithEmailAndPassword(this.signupForm.email, this.signupForm.password).then(user => {
-          this.$store.commit('setCurrentUser', user)
-          firebase.usersCollection.doc(user.uid).set({
+          this.$store.commit('setCurrentUser', user.user)
+          firebase.usersCollection.doc(user.user.uid).set({
             name: this.signupForm.name,
-            title: this.signupForm.title
+            //title: this.signupForm.title
           }).then( () => {
             this.$store.dispatch('fetchUserProfile')
             this.performingRequest = false
@@ -180,6 +245,18 @@
         }).catch(err => {
           this.performingRequest = false
           console.log(err)
+          this.errorMsg = err.message
+        })
+      },
+      resetPassword(){
+        this.performingRequest = true
+        firebase.auth.sendPasswordResetEmail(this.passwordForm.email).then( ()=>{
+          this.performingRequest = false
+          this.passwordResetSuccess = true
+          this.passwordForm.email = ''
+        }).catch(err => {
+          console.log(err)
+          this.performingRequest=false
           this.errorMsg = err.message
         })
       }
