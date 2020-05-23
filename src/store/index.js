@@ -5,7 +5,7 @@ const firebase = require('../firebaseConfig.js')
 Vue.use(Vuex)
 
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
   state: {
     currentUser: null,
     userProfile: {}
@@ -19,6 +19,12 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    clearData({ commit }) {
+      commit('setCurrentUser', null)
+      commit('setUserProfile', {})
+      // commit('setPosts', null)
+      // commit('setHiddenPosts', null)
+    },
     fetchUserProfile({commit, state}){
       firebase.usersCollection.doc(state.currentUser.uid).get().then(res => {
         commit('setUserProfile', res.data())
@@ -30,3 +36,13 @@ export default new Vuex.Store({
   modules: {
   }
 })
+
+// Page refresh state persistance
+firebase.auth.onAuthStateChanged(user => {
+  if (user) {
+    store.commit('setCurrentUser', user) // eslint-disable-line
+    store.dispatch('fetchUserProfile')   // eslint-disable-line
+  }
+})
+
+export default store

@@ -25,8 +25,8 @@ firebase.auth.onAuthStateChanged(user => {
 })
 /* eslint-enable no-unused-vars*/
 
-new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
+// new Vue({
+//  router,
+//  store,
+//  render: h => h(App)
+//}).$mount('#app')
