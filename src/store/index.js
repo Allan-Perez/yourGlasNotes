@@ -16,7 +16,7 @@ firebase.auth.onAuthStateChanged(user => {
     })
 
     // Query snapshot of posts.
-    firebase.postsCollection.orderBy('createdOn', 'desc').limit(20).onSnapshot(querySnapshot => {
+    firebase.postsCollection.limit(20).orderBy('createdOn', 'desc').onSnapshot(querySnapshot => {
       let createdByCurrentUser
       console.log("Before conditionals")
       console.log(querySnapshot.docs)
