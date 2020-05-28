@@ -4,6 +4,56 @@ const firebase = require('../firebaseConfig.js')
 
 Vue.use(Vuex)
 
+// Page refresh state persistance
+
+firebase.auth.onAuthStateChanged(user => {
+  if (user) {
+    store.commit('setCurrentUser', user) // eslint-disable-line
+    store.dispatch('fetchUserProfile')   // eslint-disable-line
+
+    firebase.usersCollection.doc(user.uid).onSnapshot(doc =>{
+      store.commit('setUserProfile', doc.data())
+    })
+
+    // Query snapshot of posts.
+    firebase.postsCollection.orderBy('createdOn', 'desc').limit(20).onSnapshot(querySnapshot => {
+      let createdByCurrentUser
+      console.log("Before conditionals")
+      console.log(querySnapshot.docs)
+      //if (querySnapshot.docs.length){
+      //  let snapshotUserId = querySnapshot.docChanges()[0].doc.data().userId 
+      //  let currentUserId = store.state.currentUser.uid
+      //  createdByCurrentUser = currentUserId == snapshotUserId ? true : false
+      //}
+      if (store.state.posts.length == 0){
+        let postsArray=[]
+        querySnapshot.forEach(doc => {
+          let post = doc.data()
+          post.id = doc.id
+          postsArray.push(post)
+        })
+        store.commit('setPosts', postsArray)
+      }
+      else if (querySnapshot.docChanges().lenght !== querySnapshot.docs.length
+          && querySnapshot.docChanges()[0].type == 'added' && !createdByCurrentUser){
+        let post = querySnapshot.docChanges()[0].doc.data()
+        post.id  = querySnapshot.docChanges()[0].doc.id
+        store.commit('setHiddenPosts', post)
+        console.log("Hidden posts")
+      } else{
+        let postsArray=[]
+        querySnapshot.forEach(doc => {
+          let post = doc.data()
+          post.id = doc.id
+          postsArray.push(post)
+        })
+        console.log("Here from page refresh")
+        console.log(postsArray)
+        store.commit('setPosts', postsArray)
+      }
+    })
+  }
+})
 
 const store = new Vuex.Store({
   state: {
@@ -20,11 +70,14 @@ const store = new Vuex.Store({
       state.userProfile = val
     },
     setPosts(state, val){
+      console.log("Setting posts")
+      console.log(state.posts)
       if (val) {
         state.posts = val
       } else {
         state.posts = []
       }
+      console.log(state.posts)
     },
     setHiddenPosts(state, val){
       if (val) {
@@ -56,37 +109,5 @@ const store = new Vuex.Store({
   }
 })
 
-// Page refresh state persistance
-firebase.auth.onAuthStateChanged(user => {
-  if (user) {
-    store.commit('setCurrentUser', user) // eslint-disable-line
-    store.dispatch('fetchUserProfile')   // eslint-disable-line
-
-    // Query snapshot of posts.
-    firebase.postsCollection.orderBy('createdOn', 'desc').onSnapshot(querySnapshot => {
-      let createdByCurrentUser
-      if (querySnapshot.docs.lenght){
-        let snapshotUserId = querySnapshot.docChanges[0].doc.data().userId 
-        let currentUserId = store.state.currentUser.uid
-        createdByCurrentUser = currentUserId == snapshotUserId ? true : false
-      }
-
-      if (querySnapshot.docChanges.lenght !== querySnapshot.docs.lenght
-          && querySnapshot.docChanges[0].type == 'added' && !createdByCurrentUser){
-        let post = querySnapshot.docChanges[0].doc.data()
-        post.id  = querySnapshot.docChanges[0].doc.id
-        store.commit('setHiddenPosts', post)
-      } else{
-        let postsArray=[]
-        querySnapshot.forEach(doc => {
-          let post = doc.data()
-          post.id = doc.id
-          postsArray.push(post)
-        })
-        store.commit('setPosts', postsArray)
-      }
-    })
-  }
-})
 
 export default store

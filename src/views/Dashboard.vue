@@ -1,6 +1,6 @@
 <template>
+    <section>
   <div id="dashboard" class="row container-fluid mt-5 pt-5">
-    <!-- <section> -->
       <div class="col-lg-4 col-md-6 col-sm-12">
         <div class="mx-1 mt-1 mb-3 card profile">
           <h5>{{ userProfile.name }}</h5>
@@ -16,7 +16,7 @@
       </div>
       <div class="col-lg-8 col-md-6 col-sm-12">
           <transition name="fade">
-            <div v-if="hiddenPosts.length" @click="showNewPosts" class="hidden-posts">
+            <div v-if="hiddenPosts.length" @click.self.prevent="showNewPosts" class="hidden-posts">
               <p>
                 Show new updates (<span class="new-posts">{{ hiddenPosts.length }}</span>)
               </p>
@@ -30,8 +30,8 @@
               </div>
               <p>{{ post.content | trimLength  }}</p>
               <ul>
-                <li><a>comments {{ post.comments }}</a></li>
-                <li><a>likes {{ post.likes}}</a></li>
+                <li><a @click="openCommentModal(post)">comments {{ post.comments }}</a></li>
+                <li><a @click="likePost(post.id, post.likes)">likes {{ post.likes}}</a></li>
                 <li><a>More</a></li>
               </ul>
             </div>
@@ -41,9 +41,21 @@
               <p class="py-5 my-5">There are no notes just now.</p>
             </div>
           </div>
+          <transition name="fade">
+            <div v-if="showCommentModal" class="c-modal">
+              <div class="c-container">
+                <a @click="closeCommentModal">X</a>
+                <p>Add a comment</p>
+                <form @submit.prevent>
+                  <textarea v-model.trim="comment.content"></textarea>
+                  <button @click="addComment" :disabled="comment.content == ''" class="button">Add comment</button>
+                </form>
+              </div>
+            </div>
+          </transition>
       </div>
-    <!-- </section> -->
   </div>
+    </section>
 </template>
 <style lang="scss">
 @import "../assets/scss/_vars.scss";
@@ -71,7 +83,14 @@ body{
       return {
         post: {
           content: ''
-        }
+        },
+        comment:{
+          postId: '',
+          userId: '',
+          content: '',
+          postComments: 0
+        },
+        showCommentModal: false
       }
     },
     computed: {
@@ -95,8 +114,61 @@ body{
       },
       showNewPosts() {
         let updatedPostsArray = this.hiddenPosts.concat(this.posts)
+        console.log(updatedPostsArray)
         this.$store.commit('setHiddenPosts', null)
         this.$store.commit('setPosts', updatedPostsArray)
+      },
+      openCommentModal(post){
+        this.comment.postId = post.id
+        this.comment.userId = post.userId
+        this.comment.postComments = post.comments
+        this.showCommentModal = true
+      },
+      closeCommentModal(){
+        this.comment.postId = ''
+        this.comment.userId = ''
+        this.comment.content = ''
+        this.showCommentModal = false
+      },
+      addComment(){
+        let postId = this.comment.postId
+        let postComments = this.comment.postComments
+
+        firebase.commentsCollection.add({
+          createdOn: new Date(),
+          content: this.comment.content,
+          postId: postId,
+          userId: this.currentUser.uid,
+          userName: this.userProfile.name
+        }).then(doc => {
+          console.log(doc)
+          firebase.postsCollection.doc(postId).update({
+            comments: postComments+1
+          }).then(()=>{
+            this.closeCommentModal()
+          })
+        }).catch(err => {
+          console.log(err)
+        })
+      },
+      likePost(postId, postLikes){
+        let docId = `${this.currentUser.uid}_${postId}`
+        firebase.likesCollection.doc(docId).get().then(doc=>{
+          if (doc.exists){
+            console.log("You can't like the post many times")
+            return
+          }
+          firebase.likesCollection.doc(docId).set({
+            postId: postId,
+            userId: this.currentUser.uid
+          }).then(()=>{
+            firebase.postsCollection.doc(postId).update({
+              likes: postLikes+1
+            })
+          })
+        }).catch(err=>{
+          console.log(err)
+        })
       }
     },
     filters: {
