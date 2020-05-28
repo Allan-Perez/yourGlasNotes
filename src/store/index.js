@@ -18,37 +18,30 @@ firebase.auth.onAuthStateChanged(user => {
     // Query snapshot of posts.
     firebase.postsCollection.limit(20).orderBy('createdOn', 'desc').onSnapshot(querySnapshot => {
       let createdByCurrentUser
-      console.log("Before conditionals")
-      console.log(querySnapshot.docs)
-      //if (querySnapshot.docs.length){
-      //  let snapshotUserId = querySnapshot.docChanges()[0].doc.data().userId 
-      //  let currentUserId = store.state.currentUser.uid
-      //  createdByCurrentUser = currentUserId == snapshotUserId ? true : false
-      //}
-      if (store.state.posts.length == 0){
-        let postsArray=[]
-        querySnapshot.forEach(doc => {
-          let post = doc.data()
-          post.id = doc.id
-          postsArray.push(post)
-        })
-        store.commit('setPosts', postsArray)
+      if (querySnapshot.docs.length){
+        let snapshotUserId = querySnapshot.docChanges()[0].doc.data().userId 
+        let currentUserId = store.state.currentUser.uid
+        createdByCurrentUser = currentUserId == snapshotUserId ? true : false
       }
-      else if (querySnapshot.docChanges().lenght !== querySnapshot.docs.length
+      if (querySnapshot.docChanges().length !== querySnapshot.docs.length
           && querySnapshot.docChanges()[0].type == 'added' && !createdByCurrentUser){
+        console.log("Hidden should be hidden")
         let post = querySnapshot.docChanges()[0].doc.data()
         post.id  = querySnapshot.docChanges()[0].doc.id
         store.commit('setHiddenPosts', post)
-        console.log("Hidden posts")
       } else{
+        console.log("not hidden")
+        console.log(querySnapshot.docChanges().length)
+        console.log(querySnapshot.docs.length)
+        console.log(querySnapshot.docChanges()[0].type)
+        console.log(querySnapshot.docChanges()[0].doc.data().userId)
+        console.log(store.state.currentUser.uid)
         let postsArray=[]
         querySnapshot.forEach(doc => {
           let post = doc.data()
           post.id = doc.id
           postsArray.push(post)
         })
-        console.log("Here from page refresh")
-        console.log(postsArray)
         store.commit('setPosts', postsArray)
       }
     })
@@ -70,14 +63,11 @@ const store = new Vuex.Store({
       state.userProfile = val
     },
     setPosts(state, val){
-      console.log("Setting posts")
-      console.log(state.posts)
       if (val) {
         state.posts = val
       } else {
         state.posts = []
       }
-      console.log(state.posts)
     },
     setHiddenPosts(state, val){
       if (val) {
