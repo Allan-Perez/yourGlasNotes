@@ -16,7 +16,7 @@
       </div>
       <div class="col-lg-8 col-md-6 col-sm-12">
           <transition name="fade">
-            <div v-if="hiddenPosts.length" @click.self.prevent="showNewPosts" class="hidden-posts">
+            <div v-if="hiddenPosts.length" @click="showNewPosts" class="hidden-posts">
               <p>
                 Show new updates (<span class="new-posts">{{ hiddenPosts.length }}</span>)
               </p>
@@ -54,7 +54,7 @@
             </div>
           </transition>
           <transition name="fade">
-            <div v-if="showPostModal" class="p-modal">
+            <div v-if="showPostModal" :key="fullPost.id" class="p-modal">
               <div class="p-container">
                 <a @click="closePostModal" class="close">X</a>
                 <div class="post">
@@ -62,8 +62,8 @@
                   <span>{{ fullPost.cretedOn | formatDate }}</span>
                   <p>{{ fullPost.content }}</p>
                   <ul>
-                    <li><a>comments {{ post.comments }}</a></li>
-                    <li><a @click="likePost(post.id, post.likes)">likes {{ fullPost.likes}}</a></li>
+                    <li><a>Comments {{ fullPost.comments }}</a></li>
+                    <li><a @click="likePost(fullPost.id, fullPost.likes)">Likes {{ fullPost.likes }}</a></li>
                   </ul>
                 </div>
                 <div v-show="postComments.length" class="comments">
@@ -139,7 +139,9 @@ body{
         })
       },
       showNewPosts() {
+        console.log("hey")
         let updatedPostsArray = this.hiddenPosts.concat(this.posts)
+        console.log("new post from hid")
         console.log(updatedPostsArray)
         this.$store.commit('setHiddenPosts', null)
         this.$store.commit('setPosts', updatedPostsArray)

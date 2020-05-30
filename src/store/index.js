@@ -15,27 +15,22 @@ firebase.auth.onAuthStateChanged(user => {
       store.commit('setUserProfile', doc.data())
     })
 
-    // Query snapshot of posts.
-    firebase.postsCollection.limit(20).orderBy('createdOn', 'desc').onSnapshot(querySnapshot => {
+    // Realtime query snapshot of posts.
+    firebase.postsCollection.orderBy('createdOn', 'desc').limit(20).onSnapshot(querySnapshot => {
+      let lastDoc = querySnapshot.docChanges()[querySnapshot.docChanges().length-1]
+      console.log(lastDoc.doc.data())
       let createdByCurrentUser
       if (querySnapshot.docs.length){
-        let snapshotUserId = querySnapshot.docChanges()[0].doc.data().userId 
+        let snapshotUserId = lastDoc.doc.data().userId
         let currentUserId = store.state.currentUser.uid
-        createdByCurrentUser = currentUserId == snapshotUserId ? true : false
+        createdByCurrentUser = currentUserId == snapshotUserId
       }
-      if (querySnapshot.docChanges().length !== querySnapshot.docs.length
-          && querySnapshot.docChanges()[0].type == 'added' && !createdByCurrentUser){
-        console.log("Hidden should be hidden")
-        let post = querySnapshot.docChanges()[0].doc.data()
-        post.id  = querySnapshot.docChanges()[0].doc.id
+      if (querySnapshot.docChanges().length !== querySnapshot.docs.length 
+          && lastDoc.type == 'added' && !createdByCurrentUser){
+        let post = lastDoc.doc.data()
+        post.id  = lastDoc.doc.id
         store.commit('setHiddenPosts', post)
       } else{
-        console.log("not hidden")
-        console.log(querySnapshot.docChanges().length)
-        console.log(querySnapshot.docs.length)
-        console.log(querySnapshot.docChanges()[0].type)
-        console.log(querySnapshot.docChanges()[0].doc.data().userId)
-        console.log(store.state.currentUser.uid)
         let postsArray=[]
         querySnapshot.forEach(doc => {
           let post = doc.data()
@@ -93,6 +88,30 @@ const store = new Vuex.Store({
       }).catch(err => {
         console.log(err)
       })
+    },
+    updateProfile({ commit, state }, data){
+      console.log(commit)
+      let name = data.name
+      let title = data.title
+
+      firebase.usersCollection.doc(state.currentUser.uid).update({name,title}).then(function(user){//eslint-disable-line
+        // update posts
+        firebase.postsCollection.where('userId', '==', state.currentUser.uid).get().then(docs=>{
+          docs.forEach(doc=>{
+            firebase.postsCollection.doc(doc.id).update({userName: name})
+          })
+        })
+
+        // update comments
+        firebase.commentsCollection.where('userId', '==', state.currentUser.uid).get().then(docs=>{
+          docs.forEach(doc=>{
+            firebase.commentsCollection.doc(doc.id).update({userName: name})
+          })
+        })
+      }).catch(err=>{
+        console.log(err)
+      })
+
     }
   },
   modules: {
