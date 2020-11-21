@@ -9,10 +9,10 @@ import Settings from '@/views/Settings'
 Vue.use(VueRouter)
 
 const routes = [
-  //{
-    //path: '*',
-    //redirect: '/dashboard'
-  //},
+  {
+    path: '*',
+    redirect: '/dashboard'
+  },
   {
     path: '/login',
     name: 'Login',

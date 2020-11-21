@@ -50,7 +50,7 @@
               <input v-model.trim="signupForm.name" type="text" class="form-control" placeholder="Your name" id="name" />
 
               <!-- <label for="email2">Email</label> -->
-              <input v-model.trim="signupForm.email" type="email" class="form-control" placeholder="Your email address" id="email2" />
+              <input v-model.trim="signupForm.email" type="email" class="form-control" placeholder="Your glasgow uni email address" id="email2" />
 
               <!-- <label for="password2">Password</label> -->
               <input v-model.trim="signupForm.password" type="password" class="form-control" placeholder="Create a password" id="password2" />
@@ -229,6 +229,12 @@
       signup() {
         this.performingRequest=true
         firebase.auth.createUserWithEmailAndPassword(this.signupForm.email, this.signupForm.password).then(user => {
+          console.log("Hi") 
+          if(!String(this.signupForm.email).includes("gla.ac.uk")){
+            let err = {}
+            err.message = "Sorry, but for now only glasgow uni students can access"
+            throw err
+          }
           this.$store.commit('setCurrentUser', user.user)
           firebase.usersCollection.doc(user.user.uid).set({
             name: this.signupForm.name,
